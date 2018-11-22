@@ -35,7 +35,8 @@ class Network:
         # On calcule l'erreur de tous les layers
         error_output = np.subtract(outputs, guess[len(guess) - 1])
         error = self.unactivate(error_output)
-        error *= np.sign(error_output) * -1
+        #error = error_output * -1
+        #error *= np.sign(error_output) * -1
 
         errors = [[]] * len(self.layers)
         errors[len(self.layers) - 1] = error
@@ -72,8 +73,8 @@ class Network:
             bias_error = 0
             for n in range(layer.neurons_n):
                 bias_error += errors[l][n]
-            bias_error = -1 * np.sign(bias_error) * bias_error ** 2
-            layer.bias += bias_error * np.absolute(layer.bias) * self.learning_rate
+            #bias_error = -1 * np.sign(bias_error) * bias_error ** 2
+            layer.bias += bias_error * np.absolute(layer.bias) * self.learning_rate * -1
             layer.bias = np.clip(layer.bias, -500, 500)
 
 
@@ -82,4 +83,8 @@ class Network:
 
     def unactivate(self, n):
         #return 1 * (1 - np.clip(n, -500, 500))
-        return 1 * (1 - n)
+        return self.activate(n) * (1 - self.activate(n))
+
+    def activate(self, input):
+        #return 1 / (1 + np.exp(-np.clip(input, -500, 500)))
+        return 1 / (1 + np.exp(-input))
