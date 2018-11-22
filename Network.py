@@ -34,8 +34,8 @@ class Network:
         guess = self.process_all(inputs)
         # On calcule l'erreur de tous les layers
         error_output = np.subtract(outputs, guess[len(guess) - 1])
-        error = error_output ** 2
-        error *= np.sign(error_output)
+        error = self.unactivate(error_output)
+        error *= np.sign(error_output) * -1
 
         errors = [[]] * len(self.layers)
         errors[len(self.layers) - 1] = error
@@ -47,10 +47,13 @@ class Network:
             for i in range(previous_layer.neurons_n):
                 e = 0
                 for n in range(layer.neurons_n):
-                    e += errors[len(self.layers) - a - 1][n] * layer.weights[n][i]
-                previous_error[i] = np.sign(e) * e ** 2
+                    e += errors[len(self.layers) - a - 1][n] * np.absolute(layer.weights[n][i])
+                previous_error[i] = self.unactivate(e) * np.sign(e)
 
             errors[len(self.layers) - a - 2] = previous_error
+
+        print(str(guess[len(guess) - 1]) + " / " + str(outputs))
+        print(errors)
 
         # On corrige les poids et les bias
         for a in range(len(self.layers)):
@@ -61,7 +64,7 @@ class Network:
                 for i in range(layer.inputs_n):
                     delta = errors[l][n] * -1
                     delta *= np.absolute(layer.weights[n][i])
-                    delta *= self.unactivate(np.absolute(guess[l][i]))
+                    delta *= np.absolute(self.unactivate(guess[l][i]))
                     delta *= self.learning_rate
                     layer.weights[n][i] += delta
                     layer.weights[n][i] = np.clip(layer.weights[n][i], -500, 500)
@@ -78,4 +81,5 @@ class Network:
 
 
     def unactivate(self, n):
-        return 1 * (1 - np.clip(n, -500, 500))
+        #return 1 * (1 - np.clip(n, -500, 500))
+        return 1 * (1 - n)
